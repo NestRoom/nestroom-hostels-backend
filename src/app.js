@@ -24,13 +24,13 @@ const rateLimit = require('express-rate-limit');
 const errorHandler = require('./middleware/errorHandler');
 
 // --- Route imports (we'll add these as we build each feature) ---
-const authRoutes = require('./routes/auth.routes');
+const authRoutes    = require('./routes/auth.routes');
+const profileRoutes = require('./routes/profile.routes');
+const hostelRoutes  = require('./routes/hostel.routes');
 // const roomsRoutes       = require('./routes/rooms.routes');
 // const residentsRoutes   = require('./routes/residents.routes');
 // const paymentsRoutes    = require('./routes/payments.routes');
 // const servicesRoutes    = require('./routes/services.routes');
-// const profileRoutes     = require('./routes/profile.routes');
-// const hostelRoutes      = require('./routes/hostel.routes');
 // const dashboardRoutes   = require('./routes/dashboard.routes');
 
 const app = express();
@@ -104,13 +104,13 @@ app.get('/api/health', (req, res) => {
 // is defined here so the route files only define their relative paths
 // (e.g. '/' for GET all, '/:id' for GET one).
 // -------------------------------------------------------------------
-app.use('/api/auth', authRoutes);
+app.use('/api/auth',    authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/hostels', hostelRoutes);
 // app.use('/api/rooms',       roomsRoutes);
 // app.use('/api/residents',   residentsRoutes);
 // app.use('/api/payments',    paymentsRoutes);
 // app.use('/api/services',    servicesRoutes);
-// app.use('/api/profile',     profileRoutes);
-// app.use('/api/hostels',     hostelRoutes);
 // app.use('/api/dashboard',   dashboardRoutes);
 
 // -------------------------------------------------------------------
