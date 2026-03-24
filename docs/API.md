@@ -525,7 +525,9 @@ GET /api/rooms?status=VACANT&sharing=2-Sharing
       "status": "VACANT",
       "sharing": "2-Sharing",
       "capacity": 2,
-      "maintenanceInfo": null
+      "maintenanceInfo": null,
+      "createdAt": "2026-03-24T18:00:00.000Z",
+      "updatedAt": "2026-03-24T18:00:00.000Z"
     }
   ]
 }
@@ -534,7 +536,7 @@ GET /api/rooms?status=VACANT&sharing=2-Sharing
 ---
 
 ### `GET /api/rooms/stats`
-Returns counts of rooms grouped by status.
+Returns aggregated counts of rooms grouped by status.
 
 **Auth required:** ✅ Yes
 
@@ -555,7 +557,7 @@ Returns counts of rooms grouped by status.
 ---
 
 ### `GET /api/rooms/:id`
-Returns a single room with its list of current residents.
+Returns a single room with its list of current residents (Joined from `residents` collection).
 
 **Auth required:** ✅ Yes
 
@@ -571,8 +573,7 @@ Returns a single room with its list of current residents.
     "capacity": 2,
     "maintenanceInfo": null,
     "residents": [
-      { "id": "69c03b...", "name": "Rohan Gupta", "bed": "Bed A", "paymentStatus": "Paid" },
-      { "id": "69c03c...", "name": "Amit Sharma", "bed": "Bed B", "paymentStatus": "Overdue" }
+      { "id": "69c03b...", "name": "Rohan Gupta", "bed": "Bed A", "paymentStatus": "Paid" }
     ]
   }
 }
@@ -581,7 +582,7 @@ Returns a single room with its list of current residents.
 ---
 
 ### `POST /api/rooms`
-Creates a new room in the hostel.
+Creates a new room in the admin's hostel.
 
 **Auth required:** ✅ Yes
 
@@ -606,6 +607,7 @@ Creates a new room in the hostel.
 ```json
 {
   "success": true,
+  "message": "Room created successfully.",
   "room": { "id": "69c01a...", "number": "204", "status": "VACANT", "..." }
 }
 ```
@@ -613,7 +615,7 @@ Creates a new room in the hostel.
 ---
 
 ### `PUT /api/rooms/:id`
-Updates a room's details (status, maintenance info, etc.).
+Updates a room's details (status, capacity, maintenance info, etc.). Only the fields provided in the body are updated.
 
 **Auth required:** ✅ Yes
 
@@ -629,6 +631,7 @@ Updates a room's details (status, maintenance info, etc.).
 ```json
 {
   "success": true,
+  "message": "Room updated.",
   "room": { "...updated room object..." }
 }
 ```
@@ -636,7 +639,7 @@ Updates a room's details (status, maintenance info, etc.).
 ---
 
 ### `DELETE /api/rooms/:id`
-Deletes a room. Only allowed if the room's status is `VACANT`.
+Deletes a room only if its status is **VACANT**.
 
 **Auth required:** ✅ Yes
 
@@ -644,7 +647,7 @@ Deletes a room. Only allowed if the room's status is `VACANT`.
 ```json
 {
   "success": true,
-  "message": "Room deleted."
+  "message": "Room deleted successfully."
 }
 ```
 
@@ -652,7 +655,7 @@ Deletes a room. Only allowed if the room's status is `VACANT`.
 ```json
 {
   "success": false,
-  "message": "Cannot delete a room that is not vacant."
+  "message": "Cannot delete a room that is not vacant. Please vacate the residents first."
 }
 ```
 

@@ -27,7 +27,8 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes    = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const hostelRoutes  = require('./routes/hostel.routes');
-// const roomsRoutes       = require('./routes/rooms.routes');
+const roomRoutes    = require('./routes/room.routes');
+// const residentsRoutes   = require('./routes/residents.routes');
 // const residentsRoutes   = require('./routes/residents.routes');
 // const paymentsRoutes    = require('./routes/payments.routes');
 // const servicesRoutes    = require('./routes/services.routes');
@@ -107,7 +108,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth',    authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/hostels', hostelRoutes);
-// app.use('/api/rooms',       roomsRoutes);
+app.use('/api/rooms',    roomRoutes);
 // app.use('/api/residents',   residentsRoutes);
 // app.use('/api/payments',    paymentsRoutes);
 // app.use('/api/services',    servicesRoutes);
