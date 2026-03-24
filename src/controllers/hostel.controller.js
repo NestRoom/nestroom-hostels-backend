@@ -20,6 +20,7 @@
 
 const { ObjectId } = require('mongodb');
 const { getDb } = require('../config/db');
+const { signToken } = require('../utils/jwt');
 
 function sanitizeHostel(hostel) {
   return {
@@ -44,10 +45,12 @@ function sanitizeHostel(hostel) {
 async function getMyHostel(req, res) {
   const db = getDb();
 
-  // If the user registered via Google SSO or WhatsApp OTP they may not
-  // have a hostel yet. We return a clear message so the frontend can
-  // redirect them to the hostel setup page.
-  if (!req.user.hostelId) {
+  // We look up the latest user data from the DB to get the most current hostelId.
+  // WHY: If the user just completed setup, the hostelId in their JWT might be null
+  // but it's already set in the database.
+  const user = await db.collection('users').findOne({ _id: new ObjectId(req.user.userId) });
+  
+  if (!user || !user.hostelId) {
     return res.status(404).json({
       success: false,
       message: 'No hostel linked to your account. Please complete hostel setup.',
@@ -55,7 +58,7 @@ async function getMyHostel(req, res) {
   }
 
   const hostel = await db.collection('hostels').findOne({
-    _id: new ObjectId(req.user.hostelId),
+    _id: user.hostelId,
   });
 
   if (!hostel) {
@@ -73,7 +76,10 @@ async function getMyHostel(req, res) {
 async function updateMyHostel(req, res) {
   const db = getDb();
 
-  if (!req.user.hostelId) {
+  // Again, fetch latest user to ensure we have the correct hostelId
+  const user = await db.collection('users').findOne({ _id: new ObjectId(req.user.userId) });
+
+  if (!user || !user.hostelId) {
     return res.status(404).json({ success: false, message: 'No hostel linked to your account.' });
   }
 
@@ -96,7 +102,7 @@ async function updateMyHostel(req, res) {
   updates.updatedAt = new Date();
 
   const result = await db.collection('hostels').findOneAndUpdate(
-    { _id: new ObjectId(req.user.hostelId) },
+    { _id: user.hostelId },
     { $set: updates },
     { returnDocument: 'after' }
   );
@@ -161,9 +167,18 @@ async function setupHostel(req, res) {
     { $set: { hostelId: result.insertedId, updatedAt: now } }
   );
 
+  // Issue a new token that includes the new hostelId
+  // This allows the frontend to refresh its session without a manual re-login
+  const newToken = signToken({
+    userId: req.user.userId,
+    role: req.user.role,
+    hostelId: result.insertedId.toString(),
+  });
+
   return res.status(201).json({
     success: true,
     message: 'Hostel created and linked to your account.',
+    token: newToken,
     hostel: sanitizeHostel({ ...hostelDoc, _id: result.insertedId }),
   });
 }

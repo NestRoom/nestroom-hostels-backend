@@ -425,7 +425,7 @@ Returns the hostel linked to the logged-in admin.
 ---
 
 ### `PUT /api/hostels/me`
-Updates hostel details.
+Updates hostel details. All fields are optional.
 
 **Auth required:** ✅ Yes
 
@@ -448,6 +448,47 @@ Updates hostel details.
   "success": true,
   "message": "Hostel updated.",
   "hostel": { "...updated hostel object..." }
+}
+```
+
+---
+
+### `POST /api/hostels/setup`
+**One-time endpoint** for Google SSO and WhatsApp OTP users who logged in without a hostel. Creates a new hostel and links it to their account.
+
+**Auth required:** ✅ Yes
+
+**Request body**
+```json
+{
+  "name": "My Hostel"
+}
+```
+
+| Field | Type | Required | Rules |
+|-------|------|----------|-------|
+| `name` | string | ✅ | Non-empty |
+
+**Response `201`**
+```json
+{
+  "success": true,
+  "message": "Hostel created and linked to your account.",
+  "hostel": {
+    "id": "...",
+    "name": "My Hostel",
+    "hostelId": "NR-1774203200000",
+    "address": "", "city": "", "state": "",
+    "totalRooms": 0, "amenities": [], "logo": null
+  }
+}
+```
+
+**Response `409` — Hostel already exists**
+```json
+{
+  "success": false,
+  "message": "Your account already has a hostel. Use PUT /api/hostels/me to update it."
 }
 ```
 
