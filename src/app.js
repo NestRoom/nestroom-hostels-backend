@@ -29,8 +29,8 @@ const profileRoutes = require('./routes/profile.routes');
 const hostelRoutes  = require('./routes/hostel.routes');
 const roomRoutes      = require('./routes/room.routes');
 const residentRoutes  = require('./routes/resident.routes');
-// const paymentsRoutes    = require('./routes/payments.routes');
-// const paymentsRoutes    = require('./routes/payments.routes');
+const paymentRoutes   = require('./routes/payment.routes');
+// const servicesRoutes    = require('./routes/services.routes');
 // const servicesRoutes    = require('./routes/services.routes');
 // const dashboardRoutes   = require('./routes/dashboard.routes');
 
@@ -110,7 +110,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/hostels', hostelRoutes);
 app.use('/api/rooms',    roomRoutes);
 app.use('/api/residents', residentRoutes);
-// app.use('/api/payments',    paymentsRoutes);
+app.use('/api/payments',  paymentRoutes);
 // app.use('/api/services',    servicesRoutes);
 // app.use('/api/dashboard',   dashboardRoutes);
 

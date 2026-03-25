@@ -824,7 +824,7 @@ Removes a resident and vacates their bed (automatic room update).
 ## 7. Payments Endpoints
 
 ### `GET /api/payments`
-Returns all payment transactions. Supports filtering.
+Returns all payment records for the admin's hostel. Supports filtering by status, method, and date range.
 
 **Auth required:** ✅ Yes
 
@@ -846,15 +846,15 @@ Returns all payment transactions. Supports filtering.
     {
       "id": "69c05f...",
       "residentId": "69c03b...",
-      "residentName": "Sneha Kapoor",
       "roomId": "69c01a...",
-      "room": "Room 105",
       "amount": 12500,
       "method": "UPI",
       "date": "2023-10-12T07:15:00.000Z",
       "dueDate": null,
       "status": "Successful",
-      "type": "Rent"
+      "type": "Rent",
+      "createdAt": "...",
+      "updatedAt": "..."
     }
   ]
 }
@@ -874,8 +874,8 @@ Returns summary statistics for the payments dashboard.
   "stats": {
     "totalCollected": 842500,
     "totalDues": 112000,
-    "overdueResidents": 8,
-    "upcomingRenewals": 24
+    "upcomingRenewals": 24,
+    "overdueResidents": 8
   }
 }
 ```
@@ -883,7 +883,7 @@ Returns summary statistics for the payments dashboard.
 ---
 
 ### `GET /api/payments/revenue-chart`
-Returns monthly revenue totals for the current year (used by the Recharts revenue chart in the dashboard).
+Returns monthly revenue totals for the current year.
 
 **Auth required:** ✅ Yes
 
@@ -893,8 +893,7 @@ Returns monthly revenue totals for the current year (used by the Recharts revenu
   "success": true,
   "data": [
     { "month": "Jan", "revenue": 210000 },
-    { "month": "Feb", "revenue": 380000 },
-    { "month": "Mar", "revenue": 480000 }
+    { "month": "Feb", "revenue": 380000 }
   ]
 }
 ```
@@ -902,7 +901,7 @@ Returns monthly revenue totals for the current year (used by the Recharts revenu
 ---
 
 ### `GET /api/payments/disputes`
-Returns payments with status `Failed` (disputed/unresolved transactions).
+Returns payments with status `Failed` (failed/unregistered transactions).
 
 **Auth required:** ✅ Yes
 
@@ -937,6 +936,7 @@ Records a new payment transaction.
   "amount": 12500,
   "method": "UPI",
   "date": "2024-03-22",
+  "dueDate": "2024-04-22",
   "type": "Rent",
   "status": "Successful"
 }
@@ -946,14 +946,15 @@ Records a new payment transaction.
 ```json
 {
   "success": true,
-  "payment": { "...new payment object..." }
+  "message": "Payment recorded successfully.",
+  "payment": { "id": "69c05f...", "amount": 12500, "..." }
 }
 ```
 
 ---
 
 ### `PUT /api/payments/:id`
-Updates a payment's status (e.g. from `Pending` to `Successful`).
+Updates a payment's status (e.g. from `Pending` to `Successful` after manual verification).
 
 **Auth required:** ✅ Yes
 
@@ -961,6 +962,15 @@ Updates a payment's status (e.g. from `Pending` to `Successful`).
 ```json
 {
   "status": "Successful"
+}
+```
+
+**Response `200`**
+```json
+{
+  "success": true,
+  "message": "Payment marked as Successful.",
+  "payment": { "...updated payment object..." }
 }
 ```
 
