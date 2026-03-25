@@ -664,7 +664,7 @@ Deletes a room only if its status is **VACANT**.
 ## 6. Residents Endpoints
 
 ### `GET /api/residents`
-Returns all residents for the hostel. Supports filtering.
+Returns all residents for the admin's hostel. Supports filtering.
 
 **Auth required:** ✅ Yes
 
@@ -672,8 +672,8 @@ Returns all residents for the hostel. Supports filtering.
 
 | Param | Type | Example | Description |
 |-------|------|---------|-------------|
-| `status` | string | `Active` | `Active`, `Notice`, `New` |
-| `paymentStatus` | string | `Overdue` | `Paid`, `Overdue`, `Partial` |
+| `status` | string | `Active` | Filter by status: `Active`, `Notice`, `New` |
+| `paymentStatus` | string | `Overdue` | Filter by payment status: `Paid`, `Overdue`, `Partial`, `Pending` |
 | `roomId` | string | `69c01a...` | Filter by room MongoDB ID |
 
 **Response `200`**
@@ -692,7 +692,9 @@ Returns all residents for the hostel. Supports filtering.
       "joinDate": "2024-01-12T00:00:00.000Z",
       "status": "Active",
       "paymentStatus": "Paid",
-      "avatarUrl": null
+      "avatarUrl": null,
+      "createdAt": "...",
+      "updatedAt": "..."
     }
   ]
 }
@@ -721,7 +723,7 @@ Returns resident counts grouped by status.
 ---
 
 ### `GET /api/residents/:id`
-Returns a single resident's full details.
+Returns a single resident's full document details.
 
 **Auth required:** ✅ Yes
 
@@ -741,7 +743,9 @@ Returns a single resident's full details.
     "paymentStatus": "Paid",
     "avatarUrl": null,
     "emergencyContact": "+919000000001",
-    "aadharNo": "XXXX-XXXX-1234"
+    "aadharNo": "XXXX-XXXX-1234",
+    "createdAt": "...",
+    "updatedAt": "..."
   }
 }
 ```
@@ -771,14 +775,15 @@ Adds a new resident and assigns them to a bed in a room.
 ```json
 {
   "success": true,
-  "resident": { "...new resident object..." }
+  "message": "Resident added successfully and room occupancy updated.",
+  "resident": { "id": "69c03b...", "name": "Siddharth Malhotra", "..." }
 }
 ```
 
 ---
 
 ### `PUT /api/residents/:id`
-Updates a resident's details or status.
+Updates a resident's details or status. All fields are optional.
 
 **Auth required:** ✅ Yes
 
@@ -794,6 +799,7 @@ Updates a resident's details or status.
 ```json
 {
   "success": true,
+  "message": "Resident updated.",
   "resident": { "...updated resident object..." }
 }
 ```
@@ -801,7 +807,7 @@ Updates a resident's details or status.
 ---
 
 ### `DELETE /api/residents/:id`
-Removes a resident and vacates their bed.
+Removes a resident and vacates their bed (automatic room update).
 
 **Auth required:** ✅ Yes
 
@@ -809,7 +815,7 @@ Removes a resident and vacates their bed.
 ```json
 {
   "success": true,
-  "message": "Resident removed and bed vacated."
+  "message": "Resident deleted successfully and bed vacated."
 }
 ```
 
