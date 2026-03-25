@@ -23,6 +23,7 @@ function sanitizeRoom(room) {
     status: room.status,
     sharing: room.sharing,
     capacity: room.capacity,
+    rent: room.rent || 0,
     maintenanceInfo: room.maintenanceInfo || null,
     createdAt: room.createdAt,
     updatedAt: room.updatedAt,
@@ -140,7 +141,7 @@ async function getOneRoom(req, res) {
 async function createRoom(req, res) {
   const db = getDb();
   const hostelId = new ObjectId(req.user.hostelId);
-  const { number, sharing, capacity, status } = req.body;
+  const { number, sharing, capacity, status, rent } = req.body;
 
   // Check if room number already exists for this hostel
   const existing = await db.collection('rooms').findOne({
@@ -161,6 +162,7 @@ async function createRoom(req, res) {
     number: number.trim(),
     sharing: sharing || '2-Sharing', // Default
     capacity: Number(capacity) || 2,
+    rent: Number(rent) || 0,
     status: status || 'VACANT',      // Default
     maintenanceInfo: null,
     createdAt: now,
@@ -185,13 +187,14 @@ async function updateRoom(req, res) {
   const roomId = new ObjectId(req.params.id);
   const hostelId = new ObjectId(req.user.hostelId);
 
-  const { number, status, sharing, capacity, maintenanceInfo } = req.body;
+  const { number, status, sharing, capacity, maintenanceInfo, rent } = req.body;
 
   const updates = {};
   if (number !== undefined)          updates.number = number.trim();
   if (status !== undefined)          updates.status = status;
   if (sharing !== undefined)         updates.sharing = sharing;
   if (capacity !== undefined)        updates.capacity = Number(capacity);
+  if (rent !== undefined)            updates.rent = Number(rent);
   if (maintenanceInfo !== undefined) updates.maintenanceInfo = maintenanceInfo;
 
   if (Object.keys(updates).length === 0) {
