@@ -135,6 +135,14 @@ async function createTicket(req, res) {
   const db = getDb();
   const hostelId = new ObjectId(req.user.hostelId);
   const { residentId, roomId, category, title, description, priority } = req.body;
+  const resId = new ObjectId(residentId);
+  let finalRoomId = roomId ? new ObjectId(roomId) : null;
+
+  // If roomId is missing, look it up from the resident doc
+  if (!finalRoomId) {
+    const resident = await db.collection('residents').findOne({ _id: resId, hostelId });
+    if (resident) finalRoomId = resident.roomId;
+  }
 
   // 1. Generate sequential Ticket ID
   const lastTicket = await db.collection('services_tickets')
@@ -154,8 +162,8 @@ async function createTicket(req, res) {
   const now = new Date();
   const ticketDoc = {
     hostelId,
-    residentId: new ObjectId(residentId),
-    roomId: new ObjectId(roomId),
+    residentId: resId,
+    roomId: finalRoomId,
     ticketId: `T-${nextIdNum}`,
     category: category || 'General',
     title: title.trim(),

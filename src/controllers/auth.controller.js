@@ -101,14 +101,11 @@ async function register(req, res) {
 
   const now = new Date();
   const userDoc = {
-    googleUid: null,          // Not a Google user
     name,
     email,
-    phone: null,              // Not set at registration (email signup)
     passwordHash,
     role: 'admin',
-    hostelId: null,           // Will be set after hostel creation
-    photoURL: null,
+    hostelId: null,           // This will be set after hostel creation
     lastLogin: now,
     createdAt: now,
     updatedAt: now,
@@ -225,10 +222,8 @@ async function googleAuth(req, res) {
       googleUid,
       name: name || 'Admin',
       email,
-      phone: null,
-      passwordHash: null,
       role: 'admin',
-      hostelId: null, // Google users complete hostel setup in the profile page
+      hostelId: null,
       photoURL,
       lastLogin: now,
       createdAt: now,
@@ -340,14 +335,10 @@ async function verifyWhatsAppOtp(req, res) {
   } else {
     // New user — create with phone only. They'll fill in name and hostel in the app.
     const newUser = {
-      googleUid: null,
       name: 'Admin',
-      email: null,
       phone: normalizedPhone,
-      passwordHash: null,
       role: 'admin',
       hostelId: null,
-      photoURL: null,
       lastLogin: now,
       createdAt: now,
       updatedAt: now,

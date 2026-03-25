@@ -202,12 +202,20 @@ async function recordPayment(req, res) {
   const db = getDb();
   const hostelId = new ObjectId(req.user.hostelId);
   const { residentId, roomId, amount, method, date, dueDate, type, status } = req.body;
+  const resId = new ObjectId(residentId);
+  let finalRoomId = roomId ? new ObjectId(roomId) : null;
+
+  // If roomId is missing, look it up from the resident doc
+  if (!finalRoomId) {
+    const resident = await db.collection('residents').findOne({ _id: resId, hostelId });
+    if (resident) finalRoomId = resident.roomId;
+  }
 
   const now = new Date();
   const paymentDoc = {
     hostelId,
-    residentId: new ObjectId(residentId),
-    roomId: new ObjectId(roomId),
+    residentId: resId,
+    roomId: finalRoomId,
     amount: Number(amount),
     method: method || 'UPI',
     date: date ? new Date(date) : now,
