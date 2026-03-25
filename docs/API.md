@@ -1110,7 +1110,7 @@ Deletes a ticket record from the database.
 ## 9. Dashboard Endpoints
 
 ### `GET /api/dashboard/stats`
-Returns a combined summary of all key metrics for the dashboard homepage. This is a single aggregated call so the frontend doesn't need to make 5 separate requests.
+Returns a combined summary of all key metrics for the dashboard homepage. This is a single aggregated call that performs parallel queries across 4 collections for maximum performance.
 
 **Auth required:** ✅ Yes
 
@@ -1122,12 +1122,12 @@ Returns a combined summary of all key metrics for the dashboard homepage. This i
     "rooms": {
       "total": 20,
       "occupied": 12,
-      "vacant": 5,
+      "vacant": 7,
       "maintenance": 1
     },
     "residents": {
       "total": 18,
-      "active": 14,
+      "active": 15,
       "onNotice": 3
     },
     "payments": {

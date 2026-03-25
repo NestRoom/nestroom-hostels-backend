@@ -31,7 +31,7 @@ const roomRoutes      = require('./routes/room.routes');
 const residentRoutes  = require('./routes/resident.routes');
 const paymentRoutes   = require('./routes/payment.routes');
 const serviceRoutes   = require('./routes/service.routes');
-const dashboardRoutes = require('./routes/dashboard.routes'); // For consistency later
+const dashboardRoutes = require('./routes/dashboard.routes'); 
 // const dashboardRoutes   = require('./routes/dashboard.routes');
 
 const app = express();
@@ -112,7 +112,7 @@ app.use('/api/rooms',    roomRoutes);
 app.use('/api/residents', residentRoutes);
 app.use('/api/payments',  paymentRoutes);
 app.use('/api/services',  serviceRoutes);
-// app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // -------------------------------------------------------------------
 // 8. 404 HANDLER
