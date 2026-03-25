@@ -979,7 +979,7 @@ Updates a payment's status (e.g. from `Pending` to `Successful` after manual ver
 ## 8. Services Endpoints
 
 ### `GET /api/services/tickets`
-Returns all service tickets. Supports filtering by status.
+Returns all service tickets (complaints/maintenance) for the admin's hostel.
 
 **Auth required:** ✅ Yes
 
@@ -987,24 +987,27 @@ Returns all service tickets. Supports filtering by status.
 
 | Param | Type | Example | Description |
 |-------|------|---------|-------------|
-| `status` | string | `PENDING` | `PENDING`, `IN-PROGRESS`, `RESOLVED` |
+| `status` | string | `Pending` | `Pending`, `In Progress`, `Resolved`, `Closed` |
 
 **Response `200`**
 ```json
 {
   "success": true,
-  "count": 4,
+  "count": 2,
   "tickets": [
     {
       "id": "69c07a...",
-      "ticketId": "SR-1024",
-      "service": "Wi-Fi",
-      "description": "WiFi not working in Wing B",
+      "ticketId": "T-1002",
       "residentId": "69c03b...",
-      "residentName": "Aryan Sharma",
-      "status": "PENDING",
-      "createdAt": "2024-03-22T10:00:00.000Z",
-      "resolvedAt": null
+      "roomId": "69c01a...",
+      "category": "Plumbing",
+      "title": "Leaky tap in bathroom",
+      "description": "The bathroom tap has been dripping continuously since last night.",
+      "priority": "Medium",
+      "status": "In Progress",
+      "createdAt": "...",
+      "resolvedAt": null,
+      "updatedAt": "..."
     }
   ]
 }
@@ -1013,7 +1016,7 @@ Returns all service tickets. Supports filtering by status.
 ---
 
 ### `GET /api/services/stats`
-Returns service ticket summary statistics.
+Returns organizational metrics for the maintenance department.
 
 **Auth required:** ✅ Yes
 
@@ -1022,9 +1025,8 @@ Returns service ticket summary statistics.
 {
   "success": true,
   "stats": {
-    "openTickets": 14,
-    "avgResolutionHours": 4.2,
-    "activeSubscriptions": 118
+    "openTickets": 12,
+    "averageResolutionTimeHours": 4.5
   }
 }
 ```
@@ -1032,23 +1034,26 @@ Returns service ticket summary statistics.
 ---
 
 ### `GET /api/services/tickets/:id`
-Returns a single ticket.
+Returns a single service ticket's details.
 
 **Auth required:** ✅ Yes
 
 ---
 
 ### `POST /api/services/tickets`
-Creates a new service request ticket. The `ticketId` (e.g. `SR-1025`) is auto-generated.
+Creates a new service ticket. Sequential IDs (e.g. `T-1003`) are auto-generated.
 
 **Auth required:** ✅ Yes
 
 **Request body**
 ```json
 {
-  "service": "Plumbing",
-  "description": "Water leakage near Room 304 bathroom",
-  "residentId": "69c03b..."
+  "residentId": "69c03b...",
+  "roomId": "69c01a...",
+  "category": "Plumbing",
+  "title": "Leaky tap in bathroom",
+  "description": "The bathroom tap has been dripping continuously.",
+  "priority": "Medium"
 }
 ```
 
@@ -1056,53 +1061,39 @@ Creates a new service request ticket. The `ticketId` (e.g. `SR-1025`) is auto-ge
 ```json
 {
   "success": true,
-  "ticket": {
-    "id": "69c07a...",
-    "ticketId": "SR-1025",
-    "service": "Plumbing",
-    "description": "Water leakage near Room 304 bathroom",
-    "status": "PENDING",
-    "createdAt": "2026-03-22T18:00:00.000Z",
-    "resolvedAt": null
-  }
+  "message": "Ticket created successfully.",
+  "ticket": { "id": "69c07a...", "ticketId": "T-1003", "..." }
 }
 ```
 
 ---
 
 ### `PUT /api/services/tickets/:id`
-Updates a ticket's status. When status is set to `RESOLVED`, `resolvedAt` is automatically stamped.
+Updates a ticket's status or priority. If status is set to `Resolved`, the `resolvedAt` timestamp is automatically recorded.
 
 **Auth required:** ✅ Yes
 
-**Request body**
+**Request body** *(all fields optional)*
 ```json
 {
-  "status": "RESOLVED"
+  "status": "Resolved",
+  "priority": "Low"
 }
-```
-
-**Valid status transitions:**
-```
-PENDING → IN-PROGRESS → RESOLVED
 ```
 
 **Response `200`**
 ```json
 {
   "success": true,
-  "ticket": {
-    "id": "69c07a...",
-    "status": "RESOLVED",
-    "resolvedAt": "2026-03-22T20:00:00.000Z"
-  }
+  "message": "Ticket updated to Resolved.",
+  "ticket": { "...updated ticket object..." }
 }
 ```
 
 ---
 
 ### `DELETE /api/services/tickets/:id`
-Deletes a ticket record.
+Deletes a ticket record from the database.
 
 **Auth required:** ✅ Yes
 
@@ -1110,7 +1101,7 @@ Deletes a ticket record.
 ```json
 {
   "success": true,
-  "message": "Ticket deleted."
+  "message": "Ticket deleted successfully."
 }
 ```
 
