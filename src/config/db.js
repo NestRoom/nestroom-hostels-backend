@@ -21,30 +21,40 @@ const { MongoClient } = require('mongodb');
 // Module-level variables — persist across all requests
 let _client = null;  // The MongoClient instance
 let _db = null;      // The specific database instance (e.g., "nestroom")
+let _connectPromise = null; // Serverless initialization lock
 
 /**
  * Opens a connection to MongoDB Atlas and creates all necessary indexes.
  * Call this once at application startup, before registering Express routes.
  */
 async function connectDb() {
-  const uri = process.env.MONGODB_URI;
-  const dbName = process.env.DB_NAME || 'nestroom';
+  if (_db) return _db;
+  if (_connectPromise) return _connectPromise;
 
-  if (!uri) {
-    throw new Error('MONGODB_URI is not defined in environment variables.');
-  }
+  _connectPromise = (async () => {
+    const uri = process.env.MONGODB_URI;
+    const dbName = process.env.DB_NAME || 'nestroom';
 
-  _client = new MongoClient(uri);
-  await _client.connect();
-  _db = _client.db(dbName);
+    if (!uri) {
+      throw new Error('MONGODB_URI is not defined in environment variables.');
+    }
 
-  console.log(`✅ MongoDB connected — database: "${dbName}"`);
+    _client = new MongoClient(uri);
+    await _client.connect();
+    _db = _client.db(dbName);
 
-  // Create indexes after connection is established.
-  // WHY: Indexes speed up queries. Without them, MongoDB does a full collection
-  // scan for every query — fine for a few docs, catastrophically slow at scale.
-  // We create them here so they are always present, even on a brand new DB.
-  await createIndexes(_db);
+    console.log(`✅ MongoDB connected — database: "${dbName}"`);
+
+    // Create indexes after connection is established.
+    // WHY: Indexes speed up queries. Without them, MongoDB does a full collection
+    // scan for every query — fine for a few docs, catastrophically slow at scale.
+    // We create them here so they are always present, even on a brand new DB.
+    await createIndexes(_db);
+    
+    return _db;
+  })();
+
+  return _connectPromise;
 }
 
 /**

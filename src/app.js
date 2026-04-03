@@ -22,6 +22,8 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
 const errorHandler = require('./middleware/errorHandler');
+const { connectDb } = require('./config/db');
+const { initFirebase } = require('./config/firebase');
 
 // --- Route imports (we'll add these as we build each feature) ---
 const authRoutes    = require('./routes/auth.routes');
@@ -34,6 +36,26 @@ const serviceRoutes   = require('./routes/service.routes');
 const dashboardRoutes = require('./routes/dashboard.routes'); 
 
 const app = express();
+
+// -------------------------------------------------------------------
+// 0. SERVERLESS INITIALIZATION
+// WHY: When deployed locally, server.js handles DB/Firebase initialization.
+// In Serverless environments like Vercel, server.js is bypassed and Vercel
+// invokes app.js directly. This middleware guarantees they are initialized.
+// -------------------------------------------------------------------
+app.use(async (req, res, next) => {
+  try {
+    await connectDb();
+    try {
+      initFirebase();
+    } catch (firebaseErr) {
+      console.warn('⚠️  Firebase Admin not initialized (Google SSO unavailable):', firebaseErr.message);
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 // -------------------------------------------------------------------
 // 1. SECURITY HEADERS (helmet)
