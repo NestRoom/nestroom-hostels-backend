@@ -6,6 +6,7 @@ const morgan = require('morgan');
 
 const { getEnv } = require('./config/env');
 const { getHelmetConfig } = require('./config/security');
+const { createV1Router } = require('./routes');
 
 function createApp() {
   const app = express();
@@ -25,9 +26,7 @@ function createApp() {
     app.use(cors());
   }
 
-  app.get('/v1/health', (_req, res) => {
-    res.status(200).json({ success: true, data: { status: 'ok' } });
-  });
+  app.use('/v1', createV1Router());
 
   return app;
 }
