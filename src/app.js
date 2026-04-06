@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const morgan = require('morgan');
 
 const { getEnv } = require('./config/env');
 const { getHelmetConfig } = require('./config/security');
@@ -9,6 +10,8 @@ const { getHelmetConfig } = require('./config/security');
 function createApp() {
   const app = express();
   const env = getEnv();
+
+  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
   app.use(helmet(getHelmetConfig()));
   app.use(compression());
