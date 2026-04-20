@@ -55,7 +55,7 @@ const kycActionSchema = Joi.object({
   rejectionReason: Joi.when("action", {
     is: "reject",
     then: Joi.string().min(5).max(300).required(),
-    otherwise: Joi.string().allow(null),
+    otherwise: Joi.string().allow(null, "").default(null),
   }),
 });
 
