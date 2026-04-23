@@ -18,6 +18,7 @@ const {
 const { createOTP, verifyOTP } = require("../services/otp");
 const { sendOTPEmail, sendCredentialsEmail, sendPasswordResetEmail } = require("../services/email");
 const { sendOTPWhatsapp } = require("../services/whatsapp");
+const { encrypt, decrypt } = require("../services/encryption");
 
 // ─── Token Helpers ────────────────────────────────────────────────────────────
 
@@ -144,14 +145,19 @@ const verifyOwnerSignup = asyncHandler(async (req, res) => {
 
 // ─── 1.4 Resident Login ───────────────────────────────────────────────────────
 const residentLogin = asyncHandler(async (req, res) => {
-  const { hostelCode, email, password } = req.body;
+  const { residentId, email, password } = req.body;
 
-  // Validate hostel exists
-  const hostel = await Hostel.findOne({ hostelCode, isActive: true }).lean();
-  if (!hostel) throw createError("Invalid hostel code", 400, "INVALID_HOSTEL_CODE");
+  // Find resident by residentId and email
+  const resident = await Resident.findOne({ residentId, email })
+    .populate("userId")
+    .populate("hostelId")
+    .populate("roomId", "roomNumber")
+    .populate("bedId", "bedNumber")
+    .lean();
 
-  // Find user by email
-  const user = await User.findOne({ email, userType: "resident" });
+  if (!resident) throw createError("Invalid resident code or email", 401, "INVALID_CREDENTIALS");
+
+  const user = await User.findById(resident.userId._id);
   if (!user) throw createError("Invalid credentials", 401, "INVALID_CREDENTIALS");
 
   // Verify password
@@ -160,17 +166,6 @@ const residentLogin = asyncHandler(async (req, res) => {
 
   if (!user.isActive) throw createError("Account is deactivated", 403, "ACCOUNT_DEACTIVATED");
   if (user.isSuspended) throw createError("Account is suspended", 403, "ACCOUNT_SUSPENDED");
-
-  // Find resident record for this hostel
-  const resident = await Resident.findOne({
-    userId: user._id,
-    hostelId: hostel._id,
-  })
-    .populate("roomId", "roomNumber")
-    .populate("bedId", "bedNumber")
-    .lean();
-
-  if (!resident) throw createError("No resident record found for this hostel", 403, "NOT_A_RESIDENT");
 
   user.lastLogin = new Date();
   const { accessToken, refreshToken } = await issueTokenPair(user);
@@ -182,6 +177,9 @@ const residentLogin = asyncHandler(async (req, res) => {
       residentId: resident.residentId,
       fullName: resident.fullName,
       email: resident.email,
+      userType: "resident",
+      hostelId: resident.hostelId?._id,
+      hostelName: resident.hostelId?.hostelName,
       roomNumber: resident.roomId?.roomNumber || null,
       bedNumber: resident.bedId?.bedNumber || null,
     },
@@ -396,6 +394,30 @@ const resetPassword = asyncHandler(async (req, res) => {
   return sendSuccess(res, { message: "Password reset successfully. Please log in again." });
 });
 
+// ─── 1.12 Change Password ─────────────────────────────────────────────────────
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const user = await User.findById(req.user._id);
+
+  if (!user) throw createError("User not found", 404, "USER_NOT_FOUND");
+
+  // Verify current password
+  const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!isMatch) throw createError("Current password incorrect", 400, "INVALID_PASSWORD");
+
+  // Hash new password
+  user.passwordHash = await bcrypt.hash(newPassword, 12);
+  
+  // If resident, also update encrypted password for admin view
+  if (user.userType === "resident") {
+    user.passwordEncrypted = encrypt(newPassword);
+  }
+
+  await user.save();
+
+  return sendSuccess(res, { message: "Password updated successfully" });
+});
+
 module.exports = {
   ownerSignup,
   verifyOwnerSignup,
@@ -407,6 +429,7 @@ module.exports = {
   verify2FA,
   forgotPassword,
   resetPassword,
+  changePassword,
   getMe,
   updateMe,
 };

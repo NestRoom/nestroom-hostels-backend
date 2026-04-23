@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
     },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
+    passwordEncrypted: { type: String, default: null }, // AES encrypted for admin view (residents only)
     whatsappNumber: { type: String, required: true, unique: true, trim: true },
 
     // ── Profile ───────────────────────────────────────────────────────────────
@@ -79,6 +80,7 @@ userSchema.index({ createdAt: -1 });
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.passwordHash;
+  delete obj.passwordEncrypted;
   delete obj.twoFactorSecret;
   delete obj.twoFactorSecretPending;
   delete obj.verificationToken;

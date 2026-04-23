@@ -45,6 +45,7 @@ const addResident = asyncHandler(async (req, res) => {
     userType: "resident",
     email,
     passwordHash: await bcrypt.hash(tempPassword, 12),
+    passwordEncrypted: encrypt(tempPassword), // Store encrypted password for admin view
     whatsappNumber,
     fullName,
   });
@@ -113,7 +114,7 @@ const addResident = asyncHandler(async (req, res) => {
   try {
     await sendCredentialsEmail(email, {
       fullName, email, password: tempPassword,
-      hostelCode: hostel?.hostelCode, role: "resident",
+      code: resident.residentId, role: "resident",
     });
   } catch (e) {
     console.error("Resident credential email failed:", e.message);
@@ -142,6 +143,7 @@ const getResidents = asyncHandler(async (req, res) => {
     Resident.find(filter)
       .populate("roomId", "roomNumber floorNumber")
       .populate("bedId", "bedNumber")
+      .populate("userId", "passwordEncrypted")
       .select("-idCardNumber")
       .skip(skip)
       .limit(parseInt(limit))
@@ -161,6 +163,13 @@ const getResidents = asyncHandler(async (req, res) => {
     })
   ]);
 
+  // Decrypt passwords for admin view
+  residents.forEach(res => {
+    if (res.userId && res.userId.passwordEncrypted) {
+      res.plainPassword = decrypt(res.userId.passwordEncrypted);
+    }
+  });
+
   return sendSuccess(res, {
     residents,
     pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / parseInt(limit)) },
@@ -177,13 +186,17 @@ const getResidentById = asyncHandler(async (req, res) => {
   const resident = await Resident.findOne({ _id: req.params.residentId, hostelId: req.params.hostelId })
     .populate("roomId", "roomNumber floorNumber")
     .populate("bedId", "bedNumber")
+    .populate("userId", "passwordEncrypted")
     .lean();
 
   if (!resident) throw createError("Resident not found", 404, "RESIDENT_NOT_FOUND");
 
   // Decrypt sensitive fields for authorized roles
-  if (resident.idCardNumber && ["owner", "employee"].includes(req.user.userType)) {
-    resident.idCardNumber = decrypt(resident.idCardNumber);
+  if (["owner", "employee"].includes(req.user.userType)) {
+    if (resident.idCardNumber) resident.idCardNumber = decrypt(resident.idCardNumber);
+    if (resident.userId && resident.userId.passwordEncrypted) {
+      resident.plainPassword = decrypt(resident.userId.passwordEncrypted);
+    }
   } else {
     delete resident.idCardNumber;
   }

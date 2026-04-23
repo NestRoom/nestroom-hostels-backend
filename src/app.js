@@ -53,7 +53,7 @@ if (process.env.NODE_ENV !== "test") {
 // ─── Global Rate Limiter ──────────────────────────────────────────────────────
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200,
+  max: 1000, // Increased for development
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: { code: "RATE_LIMITED", message: "Too many requests. Please try again later." } },
@@ -63,7 +63,7 @@ app.use(globalLimiter);
 // ─── Auth-specific Rate Limiter ───────────────────────────────────────────────
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 100, // Increased to prevent lockout during development
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: { code: "RATE_LIMITED", message: "Too many auth attempts. Try again in 15 minutes." } },

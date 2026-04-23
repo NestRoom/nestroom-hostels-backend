@@ -27,11 +27,13 @@ const sendOTPEmail = async (to, otp, userName = "User") => {
 /**
  * Send welcome + login credentials email (for residents / employees).
  */
-const sendCredentialsEmail = async (to, { fullName, email, password, hostelCode, role = "resident" }) => {
+const sendCredentialsEmail = async (to, { fullName, email, password, code, role = "resident" }) => {
+  const codeLabel = role === "resident" ? "Resident Code" : "Employee Code";
+  
   await transporter.sendMail({
     from: FROM,
     to,
-    subject: "nestRoom — Your Login Credentials",
+    subject: `nestRoom — Your ${role.charAt(0).toUpperCase() + role.slice(1)} Credentials`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;border:1px solid #e5e7eb;border-radius:8px;">
         <h2 style="color:#1d4ed8;">Welcome to nestRoom 🏠</h2>
@@ -40,7 +42,7 @@ const sendCredentialsEmail = async (to, { fullName, email, password, hostelCode,
         <table style="width:100%;border-collapse:collapse;margin:12px 0;">
           <tr><td style="padding:8px;background:#f9fafb;"><strong>Email</strong></td><td style="padding:8px;">${email}</td></tr>
           <tr><td style="padding:8px;background:#f9fafb;"><strong>Password</strong></td><td style="padding:8px;font-family:monospace;">${password}</td></tr>
-          ${hostelCode ? `<tr><td style="padding:8px;background:#f9fafb;"><strong>Hostel Code</strong></td><td style="padding:8px;">${hostelCode}</td></tr>` : ""}
+          ${code ? `<tr><td style="padding:8px;background:#f9fafb;"><strong>${codeLabel}</strong></td><td style="padding:8px;">${code}</td></tr>` : ""}
         </table>
         <p style="color:#dc2626;font-size:13px;">⚠️ Please change your password immediately after first login.</p>
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0;"/>

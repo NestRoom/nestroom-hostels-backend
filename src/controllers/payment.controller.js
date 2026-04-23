@@ -177,6 +177,7 @@ const getPaymentHistory = asyncHandler(async (req, res) => {
   const [payments, total] = await Promise.all([
     Payment.find(filter)
       .select("-razorpay.signature -razorpay.responseData")
+      .populate("residentId", "fullName residentId kyc.profilePhoto")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))

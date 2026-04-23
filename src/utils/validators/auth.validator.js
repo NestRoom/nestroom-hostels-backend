@@ -35,9 +35,19 @@ const verifyOwnerSignupSchema = Joi.object({
 
 // ── 1.4 Resident Login ────────────────────────────────────────────────────────
 const residentLoginSchema = Joi.object({
-  hostelCode: Joi.string().trim().required(),
+  residentId: Joi.string().trim().required(),
   email: Joi.string().email().lowercase().trim().required(),
   password: Joi.string().required(),
+});
+
+// ── Change Password ───────────────────────────────────────────────────────────
+const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: passwordSchema.required(),
+  confirmPassword: Joi.any()
+    .valid(Joi.ref("newPassword"))
+    .required()
+    .messages({ "any.only": "Passwords do not match" }),
 });
 
 // ── 1.5 General Login (Owner / Employee) ──────────────────────────────────────
@@ -83,4 +93,5 @@ module.exports = {
   verify2FASchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 };

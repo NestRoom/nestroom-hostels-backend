@@ -12,6 +12,7 @@ const {
   verify2FA,
   forgotPassword,
   resetPassword,
+  changePassword,
   getMe,
   updateMe,
 } = require("../controllers/auth.controller");
@@ -27,6 +28,7 @@ const {
   verify2FASchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 } = require("../utils/validators/auth.validator");
 
 // ── Owner registration ────────────────────────────────────────────────────────
@@ -64,6 +66,9 @@ router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
 
 // POST /v1/auth/reset-password
 router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+
+// POST /v1/auth/change-password (requires auth)
+router.post("/change-password", authenticate, validate(changePasswordSchema), changePassword);
 
 // ── Profile ───────────────────────────────────────────────────────────────────
 // GET /v1/auth/me

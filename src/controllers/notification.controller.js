@@ -53,17 +53,21 @@ const getMyNotifications = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20 } = req.query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  const [notifications, total] = await Promise.all([
-    Notification.find({
-      recipients: resident._id,
-    })
+  const [notificationsRaw, total] = await Promise.all([
+    Notification.find({ recipients: resident._id })
       .sort({ sentAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
-      .select("-poll.pollResponses -viewedBy")
       .lean(),
     Notification.countDocuments({ recipients: resident._id }),
   ]);
+
+  const notifications = notificationsRaw.map(n => ({
+    ...n,
+    isRead: n.viewedBy?.some(v => String(v.residentId) === String(resident._id)) || false,
+    viewedBy: undefined,
+    poll: n.poll?.isPoll ? { ...n.poll, pollResponses: undefined } : n.poll
+  }));
 
   return sendSuccess(res, {
     notifications,
@@ -190,7 +194,7 @@ const getHostelNotifications = asyncHandler(async (req, res) => {
       .sort({ sentAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
-      .select("title message type recipients totalViewCount viewRate poll sentAt deliveryStatus")
+      .select("title message type recipients totalViewCount viewRate poll sentAt deliveryStatus viewedBy")
       .lean(),
     Notification.countDocuments({ hostelId: req.params.hostelId }),
   ]);

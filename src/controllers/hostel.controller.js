@@ -191,7 +191,10 @@ const addEmployee = asyncHandler(async (req, res) => {
 
   // Send credentials
   try {
-    await sendCredentialsEmail(email, { fullName, email, password: tempPassword, role: "employee" });
+    await sendCredentialsEmail(email, { 
+      fullName, email, password: tempPassword, 
+      code: employee.employeeCode, role: "employee" 
+    });
     await sendCredentialsWhatsapp(whatsappNumber, { fullName, email, password: tempPassword });
   } catch (e) {
     console.error("Credential delivery failed:", e.message);
