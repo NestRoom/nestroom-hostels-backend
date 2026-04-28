@@ -396,7 +396,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 // ─── 1.12 Change Password ─────────────────────────────────────────────────────
 const changePassword = asyncHandler(async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
+  const { currentPassword, newPassword, otp } = req.body;
   const user = await User.findById(req.user._id);
 
   if (!user) throw createError("User not found", 404, "USER_NOT_FOUND");
@@ -404,6 +404,10 @@ const changePassword = asyncHandler(async (req, res) => {
   // Verify current password
   const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
   if (!isMatch) throw createError("Current password incorrect", 400, "INVALID_PASSWORD");
+
+  // Verify OTP
+  const result = verifyOTP("reset", user.email, otp);
+  if (!result.valid) throw createError(result.reason, 400, "INVALID_OTP");
 
   // Hash new password
   user.passwordHash = await bcrypt.hash(newPassword, 12);

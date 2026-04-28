@@ -125,7 +125,11 @@ const getAttendanceHistory = asyncHandler(async (req, res) => {
 
   const [records, total] = await Promise.all([
     AttendanceRecord.find(filter)
-      .populate("residentId", "residentId fullName roomId profilePhoto")
+      .populate({
+        path: "residentId",
+        select: "residentId fullName roomId profilePhoto",
+        populate: { path: "roomId", select: "roomNumber" }
+      })
       .sort({ attendanceDate: -1 })
       .skip(skip)
       .limit(parseInt(limit))
@@ -173,10 +177,18 @@ const getActiveAttendanceRequest = asyncHandler(async (req, res) => {
   const resident = await Resident.findOne({ userId: req.user._id }).lean();
   if (!resident) throw createError("Resident not found", 404);
 
-  const activeRequest = await AttendanceRecord.findOne({
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const latestRecord = await AttendanceRecord.findOne({
     residentId: resident._id,
-    status: "NotResponded"
+    attendanceDate: { $gte: today }
   }).sort({ createdAt: -1 }).lean();
+
+  let activeRequest = null;
+  if (latestRecord && latestRecord.status === "NotResponded") {
+    activeRequest = latestRecord;
+  }
 
   return sendSuccess(res, { activeRequest });
 });

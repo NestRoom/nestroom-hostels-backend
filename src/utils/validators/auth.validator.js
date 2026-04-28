@@ -48,6 +48,7 @@ const changePasswordSchema = Joi.object({
     .valid(Joi.ref("newPassword"))
     .required()
     .messages({ "any.only": "Passwords do not match" }),
+  otp: Joi.string().length(6).pattern(/^\d+$/).required(),
 });
 
 // ── 1.5 General Login (Owner / Employee) ──────────────────────────────────────

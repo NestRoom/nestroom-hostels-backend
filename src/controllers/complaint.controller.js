@@ -66,7 +66,14 @@ const getAllComplaints = asyncHandler(async (req, res) => {
 
   const [complaints, total] = await Promise.all([
     Complaint.find(filter)
-      .populate("residentId", "residentId fullName")
+      .populate({
+        path: "residentId",
+        select: "residentId fullName roomId",
+        populate: {
+          path: "roomId",
+          select: "roomNumber"
+        }
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
@@ -148,6 +155,20 @@ const addComplaintMessage = asyncHandler(async (req, res) => {
   return sendSuccess(res, { message: "Message added to complaint thread" });
 });
 
+// ─── 11.6 Delete Complaint ─────────────────────────────────────────────────────
+const deleteComplaint = asyncHandler(async (req, res) => {
+  const complaint = await Complaint.findOne({
+    _id: req.params.complaintId,
+    hostelId: req.params.hostelId,
+  });
+  
+  if (!complaint) throw createError("Complaint not found", 404, "COMPLAINT_NOT_FOUND");
+
+  await complaint.deleteOne();
+
+  return sendSuccess(res, { message: "Complaint removed successfully" });
+});
+
 module.exports = {
-  raiseComplaint, getMyComplaints, getAllComplaints, updateComplaintStatus, addComplaintMessage,
+  raiseComplaint, getMyComplaints, getAllComplaints, updateComplaintStatus, addComplaintMessage, deleteComplaint,
 };

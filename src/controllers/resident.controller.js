@@ -220,6 +220,7 @@ const getMyProfile = asyncHandler(async (req, res) => {
     .populate("roomId", "roomNumber floorNumber amenities")
     .populate("bedId", "bedNumber bedPosition")
     .populate("hostelId", "hostelName address city whatsappNumber")
+    .populate("buildingId", "buildingName buildingNumber")
     .lean();
 
   if (!resident) throw createError("Resident profile not found", 404, "PROFILE_NOT_FOUND");

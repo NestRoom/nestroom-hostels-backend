@@ -32,7 +32,7 @@ const { recordManualPayment, getPaymentHistory, getRevenueDashboard } = require(
 const { setAttendanceConfig, requestAttendance, getAttendanceHistory } = require("../controllers/attendance.controller");
 const { getAllLeaves, approveLeave, rejectLeave } = require("../controllers/leave.controller");
 const { sendNotification, getNotificationAnalytics, getHostelNotifications } = require("../controllers/notification.controller");
-const { getAllComplaints, updateComplaintStatus, addComplaintMessage } = require("../controllers/complaint.controller");
+const { getAllComplaints, updateComplaintStatus, addComplaintMessage, deleteComplaint } = require("../controllers/complaint.controller");
 const { createFoodSchedule, getCurrentFoodSchedule, getFoodSchedules } = require("../controllers/food.controller");
 
 // All hostel routes require authentication
@@ -117,6 +117,8 @@ router.get("/:hostelId/complaints", requireOwnerOrEmployee("canViewComplaints"),
 router.put("/:hostelId/complaints/:complaintId/status", requireOwnerOrEmployee("canUpdateComplaintStatus"), validate(updateComplaintStatusSchema), auditLog("UPDATE", "Complaint"), updateComplaintStatus);
 // POST /v1/hostels/:id/complaints/:complaintId/message
 router.post("/:hostelId/complaints/:complaintId/message", requireOwnerOrEmployee("canViewComplaints"), validate(addComplaintMessageSchema), addComplaintMessage);
+// DELETE /v1/hostels/:id/complaints/:complaintId
+router.delete("/:hostelId/complaints/:complaintId", requireOwnerOrEmployee("canUpdateComplaintStatus"), auditLog("DELETE", "Complaint"), deleteComplaint);
 
 // ── Food Schedule ─────────────────────────────────────────────────────────────
 // POST /v1/hostels/:id/food-schedule
