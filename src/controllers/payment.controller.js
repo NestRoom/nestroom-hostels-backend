@@ -208,6 +208,7 @@ const getUpcomingPayment = asyncHandler(async (req, res) => {
 // ─── 7.6 Revenue Dashboard ────────────────────────────────────────────────────
 const getRevenueDashboard = asyncHandler(async (req, res) => {
   const hostelId = req.params.hostelId;
+  const { timeframe = 'monthly' } = req.query;
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -261,23 +262,71 @@ const getRevenueDashboard = asyncHandler(async (req, res) => {
 
   const nonSubmittedCount = residentsCount - submittedCount;
 
-  // Monthly trends
+  // Timeframe based trends
+  let groupStage = {};
+  let sortStage = {};
+  let matchDate = new Date();
+
+  switch (timeframe) {
+    case 'daily':
+      matchDate.setDate(now.getDate() - 30);
+      groupStage = { 
+        _id: { day: { $dayOfMonth: "$paidDate" }, month: { $month: "$paidDate" }, year: { $year: "$paidDate" } },
+        earnings: { $sum: "$amount" }
+      };
+      sortStage = { "_id.year": 1, "_id.month": 1, "_id.day": 1 };
+      break;
+    case 'weekly':
+      matchDate.setDate(now.getDate() - 84); // 12 weeks
+      groupStage = { 
+        _id: { week: { $week: "$paidDate" }, year: { $year: "$paidDate" } },
+        earnings: { $sum: "$amount" }
+      };
+      sortStage = { "_id.year": 1, "_id.week": 1 };
+      break;
+    case 'yearly':
+      matchDate.setFullYear(now.getFullYear() - 5);
+      groupStage = { 
+        _id: { year: { $year: "$paidDate" } },
+        earnings: { $sum: "$amount" }
+      };
+      sortStage = { "_id.year": 1 };
+      break;
+    case 'monthly':
+    default:
+      matchDate.setMonth(now.getMonth() - 11); // 12 months
+      groupStage = { 
+        _id: { month: { $month: "$paidDate" }, year: { $year: "$paidDate" } },
+        earnings: { $sum: "$amount" }
+      };
+      sortStage = { "_id.year": 1, "_id.month": 1 };
+      break;
+  }
+
   const trendsResponse = await Payment.aggregate([
     { 
       $match: { 
         hostelId: new mongoose.Types.ObjectId(hostelId), 
         paymentStatus: "Success", 
-        paidDate: { $gte: new Date(now.getFullYear(), now.getMonth() - 5, 1) } 
+        paidDate: { $gte: matchDate } 
       } 
     },
-    {
-      $group: {
-        _id: { month: { $month: "$paidDate" }, year: { $year: "$paidDate" } },
-        earnings: { $sum: "$amount" }
-      }
-    },
-    { $sort: { "_id.year": 1, "_id.month": 1 } }
+    { $group: groupStage },
+    { $sort: sortStage }
   ]);
+
+  const trends = trendsResponse.map(t => {
+    let label = '';
+    if (timeframe === 'daily') label = `${t._id.day} ${new Date(0, t._id.month - 1).toLocaleString('default', { month: 'short' })}`;
+    else if (timeframe === 'weekly') label = `Week ${t._id.week}, ${t._id.year}`;
+    else if (timeframe === 'yearly') label = `${t._id.year}`;
+    else label = new Date(t._id.year, t._id.month - 1).toLocaleString('default', { month: 'short' });
+
+    return {
+      label,
+      earnings: t.earnings
+    };
+  });
 
   return sendSuccess(res, {
     allTimeRevenue: hostel?.totalRevenue || 0,
@@ -293,10 +342,7 @@ const getRevenueDashboard = asyncHandler(async (req, res) => {
       totalResidents: residentsCount,
       upcomingRenewals: upcomingRenewalsCount
     },
-    trends: trendsResponse.map(t => ({
-      month: new Date(t._id.year, t._id.month - 1).toLocaleString('default', { month: 'short' }),
-      earnings: t.earnings
-    }))
+    trends
   });
 });
 
