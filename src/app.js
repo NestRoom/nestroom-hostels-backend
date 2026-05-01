@@ -21,6 +21,7 @@ app.use(
       // Allow explicitly configured FRONTEND_URL for production
       const allowedOrigins = [
         "https://nestroom-hostels-web.vercel.app",
+        "https://www.nestroom.co.in",
         process.env.FRONTEND_URL?.replace(/\/$/, "")
       ].filter(Boolean);
 
