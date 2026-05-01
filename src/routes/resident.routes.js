@@ -18,7 +18,7 @@ const {
 } = require("../utils/validators/domain.validator");
 
 const { addResident, getResidents, getResidentById, updateResident, getMyProfile, uploadKYC, processKYC } = require("../controllers/resident.controller");
-const { initializePayment, verifyPayment, getPaymentHistory, getUpcomingPayment } = require("../controllers/payment.controller");
+const { initializePayment, verifyPayment, getPaymentHistory, getUpcomingPayment, downloadInvoice } = require("../controllers/payment.controller");
 const { submitAttendance, getMyAttendance, getActiveAttendanceRequest } = require("../controllers/attendance.controller");
 const { applyLeave, getMyLeaves } = require("../controllers/leave.controller");
 const { getMyNotifications, markAsRead, submitPollResponse } = require("../controllers/notification.controller");
@@ -47,6 +47,9 @@ router.get("/payments/history", requireResident, getPaymentHistory);
 
 // GET  /v1/residents/payments/upcoming
 router.get("/payments/upcoming", requireResident, getUpcomingPayment);
+
+// GET  /v1/residents/payments/invoice/:paymentId
+router.get("/payments/invoice/:paymentId", requireResident, downloadInvoice);
 
 // ── Attendance ────────────────────────────────────────────────────────────────
 // GET  /v1/residents/attendance/active

@@ -77,7 +77,7 @@ const sendPasswordResetEmail = async (to, otp, userName = "User") => {
 /**
  * Send a payment receipt email.
  */
-const sendPaymentReceiptEmail = async (to, { residentName, amount, period, receiptUrl, nextDueDate }) => {
+const sendPaymentReceiptEmail = async (to, { residentName, amount, period, receiptUrl, nextDueDate }, attachments = []) => {
   await transporter.sendMail({
     from: FROM,
     to,
@@ -89,10 +89,12 @@ const sendPaymentReceiptEmail = async (to, { residentName, amount, period, recei
         <p>Your hostel fee payment of <strong>₹${amount}</strong> for <strong>${period}</strong> has been received.</p>
         <p>Next due date: <strong>${nextDueDate}</strong></p>
         ${receiptUrl ? `<p><a href="${receiptUrl}" style="color:#1d4ed8;">Download Receipt →</a></p>` : ""}
+        <p>Please find the invoice attached to this email.</p>
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0;"/>
         <p style="color:#9ca3af;font-size:12px;">nestRoom — Hostel Management Platform</p>
       </div>
     `,
+    attachments,
   });
 };
 
