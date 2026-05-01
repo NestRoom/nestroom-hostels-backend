@@ -19,7 +19,12 @@ app.use(
       // Allow requests with no origin (like mobile apps, curl)
       // Allow any localhost port for local development
       // Allow explicitly configured FRONTEND_URL for production
-      if (!origin || origin.startsWith("https://nestroom-hostels-web.vercel.app/") || origin === process.env.FRONTEND_URL || origin === "https://nestroom-hostels-web.vercel.app/") {
+      const allowedOrigins = [
+        "https://nestroom-hostels-web.vercel.app",
+        process.env.FRONTEND_URL?.replace(/\/$/, "")
+      ].filter(Boolean);
+
+      if (!origin || allowedOrigins.includes(origin.replace(/\/$/, "")) || origin.startsWith("http://localhost")) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
